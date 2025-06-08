@@ -1,0 +1,33 @@
+﻿@page "/"
+@using System.Text.RegularExpressions
+@using YouTubeTranscript.Services
+@using YouTubeTranscript.Components.Pages.ComponentClasses
+@inherits HomeComponentClass
+
+<div class="yt-bg">
+    <div class="yt-card">
+        <div class="yt-input-group">
+            <input id="youtubeUrl" class="yt-input" value="@youtubeUrl" @oninput="OnInputChanged" placeholder="Paste YouTube video link here..." @onkeydown="OnInputKeyDown" autofocus />
+            <button class="yt-btn" @onclick="GetTranscriptAsync" disabled="@isLoading">Get</button>
+            <button class="yt-btn" @onclick="CopyTranscriptToClipboard" disabled="@(string.IsNullOrEmpty(transcript))">Copy</button>
+        </div>
+        @if (isLoading)
+        {
+            <div class="yt-spinner">
+                <svg class="yt-spinner-svg" viewBox="0 0 44 44">
+                    <circle class="yt-spinner-bg" cx="22" cy="22" r="20" fill="none" stroke-width="4"></circle>
+                    <circle class="yt-spinner-fg" cx="22" cy="22" r="20" fill="none" stroke-width="4"></circle>
+                </svg>
+                <span>Loading...</span>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div class="yt-error">@error</div>
+        }
+        @if (!string.IsNullOrEmpty(transcript))
+        {
+            <div class="yt-transcript">@transcript</div>
+        }
+    </div>
+</div>

@@ -1,0 +1,73 @@
+# .NET & MAUI
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+.vs/
+# Maui build outputs
+*.apk
+*.aab
+*.apks
+*.app
+*.xcarchive
+*.ipa
+*.dsym
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.msixupload
+*.appxupload
+*.cer
+*.pfx
+*.publishxml
+*.tlog
+*.log
+*.cache
+*.dbmdl
+*.db
+*.bak
+*.nupkg
+*.snupkg
+*.nuspec
+*.psess
+*.vsp
+*.vspx
+*.vspscc
+*.vssscc
+*.vsscc
+*.vssscc
+*.scc
+*.orig
+*.rej
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.VC.opendb
+*.pidb
+*.svclog
+*.pdb
+*.mdb
+*.DS_Store
+*.suo
+*.userprefs
+*.userosscache
+*.sln.docstates
+*.vs/
+# Rider
+.idea/
+*.sln.iml
+# Mac
+*.DS_Store
+# Maui Hot Reload
+**/obj/Debug/net*/hotreload-agent.dll
+# Local secrets
+secrets.json
+# Node/npm
+node_modules/
+# JetBrains Rider
+.idea/
+*.sln.iml
