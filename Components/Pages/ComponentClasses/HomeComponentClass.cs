@@ -13,13 +13,22 @@ public class HomeComponentClass : ComponentBase
     protected string transcript = string.Empty;
     protected string error = string.Empty;
     protected bool isLoading = false;
+    protected bool showLanguageDropdown = false;
+    protected string selectedLanguage = "en";
+    protected string languageFilter = string.Empty;
+
+    // Reference for the language search input
+    protected ElementReference languageSearchInputRef;
+    
+    // Track previous dropdown state to detect open event
+    private bool prevShowLanguageDropdown = false;
 
     protected async Task GetTranscriptAsync()
     {
         transcript = string.Empty;
         error = string.Empty;
         isLoading = true;
-        
+
         try
         {
             var videoId = ExtractVideoId(youtubeUrl);
@@ -29,7 +38,7 @@ public class HomeComponentClass : ComponentBase
                 return;
             }
             var retriever = new YouTubeTranscriptRetriever();
-            var result = await retriever.GetTranscriptAsync(videoId);
+            var result = await retriever.GetTranscriptAsync(videoId, selectedLanguage);
             if (!string.IsNullOrEmpty(result.Error))
                 error = result.Error;
             else
@@ -48,9 +57,7 @@ public class HomeComponentClass : ComponentBase
     protected async Task CopyTranscriptToClipboard()
     {
         if (!string.IsNullOrEmpty(transcript) && JS != null)
-        {
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", transcript);
-        }
     }
 
     protected string ExtractVideoId(string url)
@@ -78,6 +85,40 @@ public class HomeComponentClass : ComponentBase
         if (e.Key == "Enter" && !isLoading)
             await GetTranscriptAsync();
     }
+
     protected void OnInputChanged(ChangeEventArgs e) =>
         youtubeUrl = e.Value?.ToString() ?? string.Empty;
+        
+
+    protected List<KeyValuePair<string, string>> FilteredLanguages =>
+        string.IsNullOrWhiteSpace(languageFilter)
+            ? LanguageList.Languages.ToList()
+            : LanguageList.Languages.Where(l => l.Value.Contains(languageFilter, StringComparison.OrdinalIgnoreCase) || l.Key.Contains(languageFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected void ToggleLanguageDropdown() =>
+        showLanguageDropdown = !showLanguageDropdown;
+
+    protected void OnLanguageFilterChanged(ChangeEventArgs e) =>
+        languageFilter = e.Value?.ToString() ?? string.Empty;
+
+    protected void SelectLanguage(string langCode)
+    {
+        selectedLanguage = langCode;
+        showLanguageDropdown = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // Autofocus the language search input when dropdown is opened
+        if (showLanguageDropdown && !prevShowLanguageDropdown)
+        {
+            prevShowLanguageDropdown = true;
+            if (JS != null)
+                await JS.InvokeVoidAsync("ytFocusElement", languageSearchInputRef);
+        }
+        else if (!showLanguageDropdown && prevShowLanguageDropdown)
+        {
+            prevShowLanguageDropdown = false;
+        }
+    }
 }

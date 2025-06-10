@@ -8,6 +8,31 @@
     <div class="yt-card">
         <div class="yt-input-group">
             <input id="youtubeUrl" class="yt-input" value="@youtubeUrl" @oninput="OnInputChanged" placeholder="Paste YouTube video link here..." @onkeydown="OnInputKeyDown" autofocus />
+            <div class="yt-language-dropdown">
+                <div class="yt-language-selected" @onclick="ToggleLanguageDropdown">
+                    @if (!string.IsNullOrEmpty(selectedLanguage) && LanguageList.Languages.TryGetValue(selectedLanguage, out var langName))
+                    {
+                        <span>@langName</span>
+                    }
+                    else
+                    {
+                        <span style="color:#aaa">Select language</span>
+                    }
+                    <span class="yt-language-arrow">&#9662;</span>
+                </div>
+                @if (showLanguageDropdown)
+                {
+                    <div class="yt-language-list">
+                        <input class="yt-input yt-language-search" value="@languageFilter" @oninput="OnLanguageFilterChanged" placeholder="Search language..." @ref="languageSearchInputRef" />
+                        <div class="yt-language-options">
+                            @foreach (var lang in FilteredLanguages)
+                            {
+                                <div class="yt-language-option @(lang.Key == selectedLanguage ? "selected" : null)" @onclick="() => SelectLanguage(lang.Key)">@lang.Value (@lang.Key)</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
             <button class="yt-btn" @onclick="GetTranscriptAsync" disabled="@isLoading">Get</button>
             <button class="yt-btn" @onclick="CopyTranscriptToClipboard" disabled="@(string.IsNullOrEmpty(transcript))">Copy</button>
         </div>
