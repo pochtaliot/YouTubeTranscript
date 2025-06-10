@@ -12,23 +12,32 @@ public class HomeComponentClass : ComponentBase
     protected string youtubeUrl = string.Empty;
     protected string transcript = string.Empty;
     protected string error = string.Empty;
-    protected bool isLoading = false;
-    protected bool showLanguageDropdown = false;
+    protected bool isLoading;
+    protected bool showLanguageDropdown;
     protected string selectedLanguage = "en";
     protected string languageFilter = string.Empty;
-
-    // Reference for the language search input
     protected ElementReference languageSearchInputRef;
-    
-    // Track previous dropdown state to detect open event
-    private bool prevShowLanguageDropdown = false;
+    private bool prevShowLanguageDropdown;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (showLanguageDropdown && !prevShowLanguageDropdown)
+        {
+            prevShowLanguageDropdown = true;
+            if (JS is not null)
+                await JS.InvokeVoidAsync("ytFocusElement", languageSearchInputRef);
+        }
+        else if (!showLanguageDropdown && prevShowLanguageDropdown)
+        {
+            prevShowLanguageDropdown = false;
+        }
+    }
 
     protected async Task GetTranscriptAsync()
     {
         transcript = string.Empty;
         error = string.Empty;
         isLoading = true;
-
         try
         {
             var videoId = ExtractVideoId(youtubeUrl);
@@ -42,7 +51,7 @@ public class HomeComponentClass : ComponentBase
             if (!string.IsNullOrEmpty(result.Error))
                 error = result.Error;
             else
-                transcript = Regex.Replace(result.Transcript, @"\s+", " ");
+                transcript = Regex.Replace(result.Transcript, "\\s+", " ");
         }
         catch (Exception ex)
         {
@@ -56,11 +65,11 @@ public class HomeComponentClass : ComponentBase
 
     protected async Task CopyTranscriptToClipboard()
     {
-        if (!string.IsNullOrEmpty(transcript) && JS != null)
+        if (!string.IsNullOrEmpty(transcript) && JS is not null)
             await JS.InvokeVoidAsync("navigator.clipboard.writeText", transcript);
     }
 
-    protected string ExtractVideoId(string url)
+    protected static string ExtractVideoId(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return string.Empty;
         try
@@ -69,10 +78,8 @@ public class HomeComponentClass : ComponentBase
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             if (query.AllKeys.Contains("v"))
                 return query["v"] ?? string.Empty;
-            // Handle youtu.be short links
             if (uri.Host.Contains("youtu.be"))
                 return uri.AbsolutePath.Trim('/');
-            // Handle /embed/ links
             if (uri.AbsolutePath.Contains("/embed/"))
                 return uri.Segments.Last();
         }
@@ -88,7 +95,6 @@ public class HomeComponentClass : ComponentBase
 
     protected void OnInputChanged(ChangeEventArgs e) =>
         youtubeUrl = e.Value?.ToString() ?? string.Empty;
-        
 
     protected List<KeyValuePair<string, string>> FilteredLanguages =>
         string.IsNullOrWhiteSpace(languageFilter)
@@ -105,20 +111,5 @@ public class HomeComponentClass : ComponentBase
     {
         selectedLanguage = langCode;
         showLanguageDropdown = false;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // Autofocus the language search input when dropdown is opened
-        if (showLanguageDropdown && !prevShowLanguageDropdown)
-        {
-            prevShowLanguageDropdown = true;
-            if (JS != null)
-                await JS.InvokeVoidAsync("ytFocusElement", languageSearchInputRef);
-        }
-        else if (!showLanguageDropdown && prevShowLanguageDropdown)
-        {
-            prevShowLanguageDropdown = false;
-        }
     }
 }
